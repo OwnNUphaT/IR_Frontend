@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Search</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .search-container {
+            margin-top: 10%;
+            text-align: center;
+        }
+        .search-box {
+            width: 50%;
+            padding: 10px;
+            font-size: 18px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+        }
+        .search-results {
+            margin-top: 20px;
+        }
+        .result-item {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .result-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="search-container">
+            <h1>Recipe Search</h1>
+            <input type="text" id="searchQuery" class="search-box" placeholder="Search for a recipe...">
+            <button class="btn btn-primary" onclick="searchRecipes()">Search</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Loading...</div>
+        
+        <div id="results" class="search-results"></div>
+    </div>
+
+    <script>
+        function searchRecipes() {
+            let query = document.getElementById('searchQuery').value;
+            let resultsDiv = document.getElementById('results');
+            let loadingDiv = document.getElementById('loading');
+            
+            if (!query) {
+                alert("Please enter a search term!");
+                return;
+            }
+
+            resultsDiv.innerHTML = ""; // Clear previous results
+            loadingDiv.style.display = "block"; // Show loading message
+
+            axios.get(`http://127.0.0.1:5000/search?query=${query}`)
+                .then(response => {
+                    loadingDiv.style.display = "none"; // Hide loading message
+                    let results = response.data.results;
+                    
+                    if (results.length === 0) {
+                        resultsDiv.innerHTML = "<p class='text-center text-muted'>No results found.</p>";
+                        return;
+                    }
+
+                    results.forEach(recipe => {
+                        let item = `
+                            <div class="result-item d-flex">
+                                <img src="${recipe.Images}" alt="Recipe Image">
+                                <div>
+                                    <h5>${recipe.Name}</h5>
+                                    <p>${recipe.Description}</p>
+                                    <p><strong>Ingredients:</strong> ${recipe.RecipeIngredientParts}</p>
+                                    <p><strong>Instructions:</strong> ${recipe.RecipeInstructions}</p>
+                                    <p><strong>Calories:</strong> ${recipe.Calories || 'N/A'}</p>
+                                </div>
+                            </div>
+                        `;
+                        resultsDiv.innerHTML += item;
+                    });
+                })
+                .catch(error => {
+                    loadingDiv.style.display = "none"; // Hide loading message
+                    resultsDiv.innerHTML = "<p class='text-danger text-center'>Error fetching results. Please try again.</p>";
+                });
+        }
+    </script>
+
+</body>
+</html>
