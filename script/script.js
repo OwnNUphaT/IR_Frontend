@@ -31,17 +31,23 @@ function searchRecipes() {
             }
 
             results.forEach(recipe => {
+                // Store the full recipe data in localStorage for access on the detail page
+                const recipeId = encodeURIComponent(recipe.Name.replace(/\s+/g, '-').toLowerCase());
+                
                 let item = `
-                    <div class="grid-item">
+                    <div class="grid-item" onclick="viewRecipeDetails('${recipeId}')">
                         <img src="${recipe.Images}" alt="Recipe Image">
                         <div class="content">
                             <h5>${recipe.Name}</h5>
                             <p>${recipe.Description}</p>
-                            <button class="bookmark-btn" onclick="bookmarkRecipe('${recipe.Name}', '${recipe.Images}', '${recipe.Description}')">Bookmark</button>
+                            <button class="bookmark-btn" onclick="bookmarkRecipe(event, '${recipe.Name}', '${recipe.Images}', '${recipe.Description}')">Bookmark</button>
                         </div>
                     </div>
                 `;
                 resultsDiv.innerHTML += item;
+                
+                // Store the recipe data in localStorage
+                storeRecipeData(recipeId, recipe);
             });
         })
         .catch(error => {
@@ -50,7 +56,24 @@ function searchRecipes() {
         });
 }
 
-function bookmarkRecipe(name, image, description) {
+function storeRecipeData(recipeId, recipeData) {
+    // Get existing recipes or initialize empty object
+    let storedRecipes = JSON.parse(localStorage.getItem("recipeDetails")) || {};
+    // Store this recipe data
+    storedRecipes[recipeId] = recipeData;
+    // Save back to localStorage
+    localStorage.setItem("recipeDetails", JSON.stringify(storedRecipes));
+}
+
+function viewRecipeDetails(recipeId) {
+    // Navigate to recipe detail page with recipe ID in URL
+    window.location.href = `recipe-detail.html?id=${recipeId}`;
+}
+
+function bookmarkRecipe(event, name, image, description) {
+    // Stop the click event from bubbling up to the parent container
+    event.stopPropagation();
+    
     let recipe = { name, image, description };
     let exists = bookmarks.some(b => b.name === name);
 
