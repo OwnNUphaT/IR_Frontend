@@ -1,5 +1,24 @@
 let bookmarks = JSON.parse(localStorage.getItem("bookmarkedRecipes")) || [];
 
+// Store the last search query and results
+function storeSearchState(query, results) {
+    sessionStorage.setItem("lastSearchQuery", query);
+    sessionStorage.setItem("lastSearchResults", JSON.stringify(results));
+}
+
+// Restore search state
+function restoreSearchState() {
+    const query = sessionStorage.getItem("lastSearchQuery");
+    const results = JSON.parse(sessionStorage.getItem("lastSearchResults"));
+    
+    if (query && results) {
+        document.getElementById('searchQuery').value = query;
+        displayResults(results);
+        return true;
+    }
+    return false;
+}
+
 // Trigger search when Enter key is pressed
 function handleKeyPress(event) {
     if (event.key === "Enter") {
@@ -30,25 +49,11 @@ function searchRecipes() {
                 return;
             }
 
-            results.forEach(recipe => {
-                // Store the full recipe data in localStorage for access on the detail page
-                const recipeId = encodeURIComponent(recipe.Name.replace(/\s+/g, '-').toLowerCase());
-                
-                let item = `
-                    <div class="grid-item" onclick="viewRecipeDetails('${recipeId}')">
-                        <img src="${recipe.Images}" alt="Recipe Image">
-                        <div class="content">
-                            <h5>${recipe.Name}</h5>
-                            <p>${recipe.Description}</p>
-                            <button class="bookmark-btn" onclick="bookmarkRecipe(event, '${recipe.Name}', '${recipe.Images}', '${recipe.Description}')">Bookmark</button>
-                        </div>
-                    </div>
-                `;
-                resultsDiv.innerHTML += item;
-                
-                // Store the recipe data in localStorage
-                storeRecipeData(recipeId, recipe);
-            });
+            // Store current search state
+            storeSearchState(query, results);
+            
+            // Display results
+            displayResults(results);
         })
         .catch(error => {
             loadingDiv.style.display = "none"; // Hide loading message
@@ -56,17 +61,48 @@ function searchRecipes() {
         });
 }
 
-function storeRecipeData(recipeId, recipeData) {
-    // Get existing recipes or initialize empty object
-    let storedRecipes = JSON.parse(localStorage.getItem("recipeDetails")) || {};
-    // Store this recipe data
-    storedRecipes[recipeId] = recipeData;
-    // Save back to localStorage
-    localStorage.setItem("recipeDetails", JSON.stringify(storedRecipes));
+function displayResults(results) {
+    let resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ""; // Clear previous results
+    
+    results.forEach(recipe => {
+        // Create a safe ID from recipe name
+        const recipeId = encodeURIComponent(recipe.Name.replace(/\s+/g, '-').toLowerCase());
+        
+        // Store the recipe in sessionStorage instead of passing it in the URL
+        const recipeKey = `recipe_${recipeId}`;
+        sessionStorage.setItem(recipeKey, JSON.stringify(recipe));
+        
+        let item = document.createElement('div');
+        item.className = 'grid-item';
+        item.innerHTML = `
+            <img src="${recipe.Images}" alt="${recipe.Name}">
+            <div class="content">
+                <h5>${recipe.Name}</h5>
+                <p>${recipe.Description}</p>
+                <button class="bookmark-btn">Bookmark</button>
+            </div>
+        `;
+        
+        // Add event listener for click on the whole item
+        item.addEventListener('click', function() {
+            viewRecipeDetails(recipeId);
+        });
+        
+        // Add event listener for bookmark button
+        const bookmarkBtn = item.querySelector('.bookmark-btn');
+        bookmarkBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            bookmarkRecipe(event, recipe.Name, recipe.Images, recipe.Description);
+        });
+        
+        resultsDiv.appendChild(item);
+    });
 }
 
+// Modified viewRecipeDetails function
 function viewRecipeDetails(recipeId) {
-    // Navigate to recipe detail page with recipe ID in URL
+    // Navigate to recipe detail page
     window.location.href = `recipe-detail.html?id=${recipeId}`;
 }
 
@@ -85,3 +121,14 @@ function bookmarkRecipe(event, name, image, description) {
         alert("Recipe already bookmarked!");
     }
 }
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on the home page
+    if (window.location.pathname.endsWith('home.html') || 
+        window.location.pathname === '/' || 
+        window.location.pathname.endsWith('/')) {
+        // Try to restore previous search state
+        restoreSearchState();
+    }
+});

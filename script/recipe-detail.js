@@ -14,17 +14,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Extract recipe ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipeId = urlParams.get('id');
+    
+    if (recipeId) {
+        loadRecipeDetails(recipeId);
+    } else {
+        document.getElementById('recipe-detail').innerHTML = `
+            <div class="alert alert-danger">
+                No recipe selected. <a href="home.html">Return to search</a>
+            </div>
+        `;
+    }
+});
+
 function loadRecipeDetails(recipeId) {
     const loadingElement = document.getElementById('loading');
     const recipeDetailElement = document.getElementById('recipe-detail');
     
-    // Get recipe data from localStorage
-    const storedRecipes = JSON.parse(localStorage.getItem("recipeDetails")) || {};
-    const recipeData = storedRecipes[recipeId];
+    // Get recipe data from sessionStorage
+    const recipeKey = `recipe_${recipeId}`;
+    const recipeData = JSON.parse(sessionStorage.getItem(recipeKey));
     
     if (!recipeData) {
-        // If not found in localStorage, try to fetch from server
-        fetchRecipeFromServer(recipeId);
+        // If not found in sessionStorage, show error
+        loadingElement.style.display = 'none';
+        recipeDetailElement.innerHTML = `
+            <div class="alert alert-warning">
+                Recipe details not found. <a href="home.html">Return to search</a>
+            </div>
+        `;
         return;
     }
     
@@ -40,7 +61,7 @@ function loadRecipeDetails(recipeId) {
         </div>
 
         <div>
-            <h1 class="recipe-cal">Caloris: ${recipeData.Calories}</h1>
+            <h1 class="recipe-cal">Calories: ${recipeData.Calories || 'N/A'}</h1>
         </div>
 
         <div>
@@ -48,17 +69,22 @@ function loadRecipeDetails(recipeId) {
         </div>
 
         <div>
-            <p class="recipe-description"><b>Ingrediant: </b> ${recipeData.RecipeIngredientParts}</p>
+            <p class="recipe-description"><b>Ingredients: </b> ${recipeData.RecipeIngredientParts || 'Not available'}</p>
         </div>
 
         <div>
-            <p class="recipe-description"><b>How to cook:</b> ${recipeData.RecipeInstructions}</p>
+            <p class="recipe-description"><b>How to cook:</b> ${recipeData.RecipeInstructions || 'Not available'}</p>
         </div>
 
-        <button class="bookmark-detail-btn" onclick="bookmarkFromDetail('${recipeData.Name}', '${recipeData.Images}', '${recipeData.Description}')">
+        <button class="bookmark-detail-btn" id="bookmarkButton">
             Save to Bookmarks
         </button>
     `;
+    
+    // Add event listener for bookmark button
+    document.getElementById('bookmarkButton').addEventListener('click', function() {
+        bookmarkFromDetail(recipeData.Name, recipeData.Images, recipeData.Description);
+    });
 }
 
 function fetchRecipeFromServer(recipeId) {

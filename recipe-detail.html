@@ -19,12 +19,14 @@
             <a href="recommended.html">Recommended Recipes</a>
             <a href="bookmarks.html">Bookmarked Recipes</a>
         </div>
+        <input type="text" id="searchQuery" class="search-box" placeholder="Search for a recipe..." onkeypress="handleKeyPress(event)">
+        <button class="search-btn" onclick="searchRecipes()">Search</button>
     </div>
 
     <!-- Recipe Detail Container -->
     <div class="container mt-4">
         <div class="back-link">
-            <a href="javascript:history.back()">&larr; Back to search results</a>
+            <a href="home.html">&larr; Back to search results</a>
         </div>
         <div id="recipe-detail" class="recipe-detail-container">
             <!-- Recipe details will be loaded here -->
