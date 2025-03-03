@@ -76,7 +76,7 @@ function displayResults(results) {
         let item = document.createElement('div');
         item.className = 'grid-item';
         item.innerHTML = `
-            <img src="${recipe.Images}" alt="${recipe.Name}">
+            <img src="${recipe.image_link}" alt="${recipe.Name}">
             <div class="content">
                 <h5>${recipe.Name}</h5>
                 <p>${recipe.Description}</p>

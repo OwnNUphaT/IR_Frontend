@@ -54,7 +54,7 @@ function loadRecipeDetails(recipeId) {
     
     // Render recipe details
     recipeDetailElement.innerHTML = `
-        <img src="${recipeData.Images}" alt="${recipeData.Name}" class="recipe-image">
+        <img src="${recipeData.image_link}" alt="${recipeData.Name}" class="recipe-image">
 
         <div>
             <h1 class="recipe-title">${recipeData.Name}</h1>
@@ -83,7 +83,7 @@ function loadRecipeDetails(recipeId) {
     
     // Add event listener for bookmark button
     document.getElementById('bookmarkButton').addEventListener('click', function() {
-        bookmarkFromDetail(recipeData.Name, recipeData.Images, recipeData.Description);
+        bookmarkFromDetail(recipeData.Name, recipeData.image_link, recipeData.Description);
     });
 }
 
