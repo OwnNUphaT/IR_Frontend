@@ -8,26 +8,30 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         document.getElementById('recipe-detail').innerHTML = `
             <div class="alert alert-danger">
-                No recipe selected. <a href="index.html">Return to search</a>
+                No recipe selected. <a href="search-result.html">Return to search</a>
             </div>
         `;
     }
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Extract recipe ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const recipeId = urlParams.get('id');
+    // Add event listener to home link to clear states
+    const homeLinks = document.querySelectorAll('a[href="Home.html"]');
     
-    if (recipeId) {
-        loadRecipeDetails(recipeId);
-    } else {
-        document.getElementById('recipe-detail').innerHTML = `
-            <div class="alert alert-danger">
-                No recipe selected. <a href="home.html">Return to search</a>
-            </div>
-        `;
-    }
+    homeLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default navigation
+            
+            // Clear search-related session storage
+            sessionStorage.removeItem('lastSearchQuery');
+            sessionStorage.removeItem('lastSearchResults');
+            
+            // Clear any stored recipe details
+            const recipeKeys = Object.keys(sessionStorage).filter(key => key.startsWith('recipe_'));
+            recipeKeys.forEach(key => sessionStorage.removeItem(key));
+            
+            // Redirect to home page
+            window.location.href = 'Home.html';
+        });
+    });
 });
 
 function loadRecipeDetails(recipeId) {
@@ -43,7 +47,7 @@ function loadRecipeDetails(recipeId) {
         loadingElement.style.display = 'none';
         recipeDetailElement.innerHTML = `
             <div class="alert alert-warning">
-                Recipe details not found. <a href="home.html">Return to search</a>
+                Recipe details not found. <a href="search-result.html">Return to search</a>
             </div>
         `;
         return;
@@ -87,16 +91,6 @@ function loadRecipeDetails(recipeId) {
     });
 }
 
-function fetchRecipeFromServer(recipeId) {
-    // In a real app, you would fetch the recipe details from your server
-    // This is a placeholder for that functionality
-    document.getElementById('recipe-detail').innerHTML = `
-        <div class="alert alert-warning">
-            Recipe details not found. <a href="index.html">Return to search</a>
-        </div>
-    `;
-}
-
 function bookmarkFromDetail(name, image, description) {
     // Get existing bookmarks
     let bookmarks = JSON.parse(localStorage.getItem("bookmarkedRecipes")) || [];
@@ -110,4 +104,14 @@ function bookmarkFromDetail(name, image, description) {
     } else {
         alert("Recipe already bookmarked!");
     }
+}
+
+function fetchRecipeFromServer(recipeId) {
+    // In a real app, you would fetch the recipe details from your server
+    // This is a placeholder for that functionality
+    document.getElementById('recipe-detail').innerHTML = `
+        <div class="alert alert-warning">
+            Recipe details not found. <a href="search-result.html">Return to search</a>
+        </div>
+    `;
 }
