@@ -125,7 +125,7 @@ function bookmarkRecipe(event, name, image, description) {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     // Check if we're on the home page
-    if (window.location.pathname.endsWith('home.html') || 
+    if (window.location.pathname.endsWith('search-result.html') || 
         window.location.pathname === '/' || 
         window.location.pathname.endsWith('/')) {
         // Try to restore previous search state
